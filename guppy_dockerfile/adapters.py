@@ -74,64 +74,55 @@ class Adapter(object):
 #             end_sequence=('Barcode_2_end', 'TTTTTTTTGGGGGGGGCCCCCCCCAAAAAAAA'))
 
 
-ADAPTERS = [Adapter('Joana_polyA_VNP',
-                    start_sequence=('Joana_polyA_VNP', 'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTV')),
-
-            Adapter('Joana_polyA_VNP_rev',
-                    start_sequence=('Joana_polyA_VNP_rev', 'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTV')),
+ADAPTERS = [Adapter('Barcode_Joana_polyA_VNP',
+                    start_sequence=('Joana_polyA_VNP', 'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTV'),
+                    end_sequence=('Joana_polyA_VNP_rev', 'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTV')),
 
 
-            Adapter('Joana_TERRA_VNP',
-                    start_sequence=('Joana_TERRA_VNP', 'ACTTGCCTGTCGCTCTATCTTCCCCTAACCCTAACCCTAACCCTAACCCTAA')),
-            Adapter('Joana_TERRA_VNP_rev',
-                    start_sequence=('Joana_TERRA_VNP_rev', 'ACTTGCCTGTCGCTCTATCTTCCCCTAACCCTAACCCTAACCCTAACCCTAA')),
+            Adapter('Barcode_Joana_TERRA_VNP',
+                    start_sequence=('Joana_TERRA_VNP', 'ACTTGCCTGTCGCTCTATCTTCCCCTAACCCTAACCCTAACCCTAACCCTAA'),
+                    end_sequence=('Joana_TERRA_VNP_rev', 'ACTTGCCTGTCGCTCTATCTTCCCCTAACCCTAACCCTAACCCTAACCCTAA')),
 
 
-            Adapter('Joana_TERRA_oligo-dT-CCCT',
+            Adapter('Barcode_Joana_TERRA_oligo-dT-CCCT',
                     start_sequence=('Joana_TERRA_oligo-dT-CCCT',
-                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTCCCT')),
-            Adapter('Joana_TERRA_oligo-dT-CCCT_rev',
-                    start_sequence=('Joana_TERRA_oligo-dT-CCCT_rev',
+                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTCCCT'),
+                    end_sequence=('Joana_TERRA_oligo-dT-CCCT_rev',
                                     'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTCCCT')),
 
 
-            Adapter('Joana_TERRA_oligo-dT-CCTA',
+            Adapter('Barcode_Joana_TERRA_oligo-dT-CCTA',
                     start_sequence=('Joana_TERRA_oligo-dT-CCTA',
-                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTCCTA')),
-            Adapter('Joana_TERRA_oligo-dT-CCTA_rev',
-                    start_sequence=('Joana_TERRA_oligo-dT-CCTA_rev',
+                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTCCTA'),
+                    end_sequence=('Joana_TERRA_oligo-dT-CCTA_rev',
                                     'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTCCTA')),
 
 
-            Adapter('Joana_TERRA_oligo-dT-CTAA',
+            Adapter('Barcode_Joana_TERRA_oligo-dT-CTAA',
                     start_sequence=('Joana_TERRA_oligo-dT-CTAA',
-                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTCTAA')),
-            Adapter('Joana_TERRA_oligo-dT-CTAA_rev',
-                    start_sequence=('Joana_TERRA_oligo-dT-CTAA_rev',
+                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTCTAA'),
+                    end_sequence=('Joana_TERRA_oligo-dT-CTAA_rev',
                                     'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTCTAA')),
 
 
-            Adapter('Joana_pA-TERRA-oligo-dT-TAAC',
+            Adapter('Barcode_Joana_pA-TERRA-oligo-dT-TAAC',
                     start_sequence=('Joana_pA-TERRA-oligo-dT-TAAC',
-                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTTAAC')),
-            Adapter('Joana_pA-TERRA-oligo-dT-TAAC_rev',
-                    start_sequence=('Joana_pA-TERRA-oligo-dT-TAAC_rev',
+                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTTAAC'),
+                    end_sequence=('Joana_pA-TERRA-oligo-dT-TAAC_rev',
                                     'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTTAAC')),
 
 
-            Adapter('Joana_pA-TERRA-oligo-dT-AACC',
+            Adapter('Barcode_Joana_pA-TERRA-oligo-dT-AACC',
                     start_sequence=('Joana_pA-TERRA-oligo-dT-AACC',
-                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTAACC')),
-            Adapter('Joana_pA-TERRA-oligo-dT-AACC_rev',
-                    start_sequence=('Joana_pA-TERRA-oligo-dT-AACC_rev',
+                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTAACC'),
+                    end_sequence=('Joana_pA-TERRA-oligo-dT-AACC_rev',
                                     'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTAACC')),
 
 
-            Adapter('Joana_pA-TERRA-oligo-dT-ACCC',
+            Adapter('Barcode_Joana_pA-TERRA-oligo-dT-ACCC',
                     start_sequence=('Joana_pA-TERRA-oligo-dT-ACCC',
-                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTACCC')),
-            Adapter('Joana_pA-TERRA-oligo-dT-ACCC_rev',
-                    start_sequence=('Joana_pA-TERRA-oligo-dT-ACCC_rev',
+                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTACCC'),
+                    end_sequence=('Joana_pA-TERRA-oligo-dT-ACCC_rev',
                                     'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTTACCC')),
 
 
