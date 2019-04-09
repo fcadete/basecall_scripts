@@ -20,9 +20,10 @@
 #                                                     -o 20190327_first_run/VNP_polyA-TERRA/VNP_pA-TERRA_20190327/20190327_1801_MN29796_FAK43621_7641ca36/fastq_guppy/qc_plots
 #
 #
-#srun -n1 -N1 --exclusive shifter /Porechop/porechop-runner.py -i 20190327_first_run/VNP_polyA-TERRA/VNP_pA-TERRA_20190327/20190327_1801_MN29796_FAK43621_7641ca36/fastq_guppy/pass/ \
-#                                          -o 20190327_first_run/VNP_polyA-TERRA/VNP_pA-TERRA_20190327/20190327_1801_MN29796_FAK43621_7641ca36/fastq_guppy/pass_trimmed.fastq \
-#                                          -t 32 --verbosity 3 > guppy_VNP_pA-TERRA_20190327.porechop_output
+srun -n1 -N1 --exclusive shifter /Porechop/porechop-runner.py -i 20190327_first_run/VNP_polyA-TERRA/VNP_pA-TERRA_20190327/20190327_1801_MN29796_FAK43621_7641ca36/fastq_guppy/pass/ \
+                                          -b 20190327_first_run/VNP_polyA-TERRA/VNP_pA-TERRA_20190327/20190327_1801_MN29796_FAK43621_7641ca36/fastq_guppy/barcode_separated \
+                                          --barcode_diff 1 \
+                                          -t 32 --verbosity 3 > guppy_VNP_pA-TERRA_20190327.porechop_output
 #
 #srun -n1 -N1 --exclusive shifter /FastQC/fastqc -k 6 --nano --threads 32 20190327_first_run/VNP_polyA-TERRA/VNP_pA-TERRA_20190327/20190327_1801_MN29796_FAK43621_7641ca36/fastq_guppy/pass_trimmed.fastq
 #

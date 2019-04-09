@@ -19,10 +19,11 @@
 #srun -n1 -N1 --exclusive shifter Rscript /MinIONQC.R -i 20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/sequencing_summary.txt \
 #                                                     -o 20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/qc_plots
 #
-#srun -n1 -N1 --exclusive shifter /Porechop/porechop-runner.py -i 20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/pass/ \
-#                                          -o 20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/pass_trimmed.fastq \
-#                                          -t 32 --verbosity 3 > guppy_VNP_polya_20190327.porechop_output
-#
+srun -n1 -N1 --exclusive shifter /Porechop/porechop-runner.py -i 20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/pass/ \
+                                          -o 20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/barcode_separated \
+                                          --barcode_diff 1 \
+                                          -t 32 --verbosity 3 > guppy_VNP_polya_20190327.porechop_output
+
 #srun -n1 -N1 --exclusive shifter /FastQC/fastqc -k 6 --nano --threads 32 20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/pass_trimmed.fastq
 #
 #srun -n1 -N1 --exclusive shifter /minimap2/minimap2 -x map-ont -t 32 \
