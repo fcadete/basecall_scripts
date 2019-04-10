@@ -21,7 +21,7 @@
 #
 #
 srun -n1 -N1 --exclusive shifter /Porechop/porechop-runner.py -i 20190403_second_run/VNP-TERRA_purified_190403/VNP-TERRA_purified_190403/20190403_0937_MN29796_FAK43621_52980800/fastq_guppy/pass/ \
-                                          -o 20190403_second_run/VNP-TERRA_purified_190403/VNP-TERRA_purified_190403/20190403_0937_MN29796_FAK43621_52980800/fastq_guppy/barcode_separated \
+                                          -b 20190403_second_run/VNP-TERRA_purified_190403/VNP-TERRA_purified_190403/20190403_0937_MN29796_FAK43621_52980800/fastq_guppy/barcode_separated \
                                           --barcode_diff 1 \
                                           -t 32 --verbosity 3 > guppy_VNP-TERRA_purified_190403.porechop_output
 
