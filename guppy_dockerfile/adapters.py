@@ -83,6 +83,11 @@ ADAPTERS = [Adapter('Barcode Joana_polyA_VNP (forward)',
                     start_sequence=('Joana_TERRA_VNP', 'ACTTGCCTGTCGCTCTATCTTCCCCTAACCCTAACCCTAACCCTAACCCTAA'),
                     end_sequence=('Joana_TERRA_VNP_rev', 'ACTTGCCTGTCGCTCTATCTTCCCCTAACCCTAACCCTAACCCTAACCCTAA')),
 
+            Adapter('Barcode Joana_TERRA_oligo-dT-any (forward)',
+                    start_sequence=('Joana_TERRA_oligo-dT-any',
+                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTT'),
+                    end_sequence=('Joana_TERRA_oligo-dT-any_rev',
+                                    'ACTTGCCTGTCGCTCTATCTTCTTTTTTTTTTTTTTTTTTTTT')),
 
             Adapter('Barcode Joana_TERRA_oligo-dT-CCCT (forward)',
                     start_sequence=('Joana_TERRA_oligo-dT-CCCT',
