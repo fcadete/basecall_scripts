@@ -12,7 +12,10 @@ read_adapters = {'readid':[],
                  'read':[],
                  'ch':[],
                  'start_time':[],
-		 'adapters':[]}
+		 'adapters':[],
+                 'start_barcodes':[],
+		 'end_barcodes':[],
+ 		 'final_barcode_call':[]}
 
 for line in porefile:
 	if "reads had adapters trimmed" in line:
@@ -27,7 +30,18 @@ for line in porefile:
 		which_end = "start"
 		line = porefile.readline().strip()
 		while line:
-			if line.startswith("end"):
+			if line.startswith("Barcodes:"):
+				line = porefile.readline().strip()
+				line = line.replace("start barcodes: ", "").strip()
+				read_adapters['start_barcodes'].append(line.split(", "))
+				line = porefile.readline().strip()
+				line = line.replace("end barcodes: ", "").strip()
+				read_adapters['end_barcodes'].append(line.split(", "))
+				line = porefile.readline()
+				line = porefile.readline()
+				line = porefile.readline().strip()
+				read_adapters['final_barcode_call'].append(line.split(":")[1].strip())
+			elif line.startswith("end"):
 				which_end = "end"
 			elif line.startswith("start") == False:
 				adapter_info = line.split(", ")
@@ -40,22 +54,55 @@ for line in porefile:
 			line = porefile.readline().strip()
 		read_adapters['adapters'].append(adapters)
 
-output_file = open(path_to_poreoutput.replace("output", "table"), "w")
+output_file = open(path_to_poreoutput.replace("output", "finalcall_table"), "w")
+
+output_file.write("\t".join(['readid', 'runid', 'sampleid', 'read', 'ch', 'start_time', 'final_barcode_call']) + "\n")
+for i in range(len(read_adapters['readid'])):
+	string_output = []
+	for read_key in read_adapters.keys():
+		if read_key not in ['adapters', 'start_barcodes', 'end_barcodes']:
+			string_output.append(read_adapters[read_key][i])
+	#	elif read_key == 'adapters':
+	#		adapters_list = []
+	#		for j in range(0, len(read_adapters[read_key][i])):
+	#			adapters_list.append(";".join(list(read_adapters[read_key][i][0].values())))
+	#		string_output.append(":".join(adapters_list))
+	#	else:
+	#		string_output.append(";".join(read_adapters[read_key][i]))
+	output_file.write("\t".join(string_output) + "\n")
+
+output_file.close()
 
 
 for i in range(len(read_adapters['readid'])):
 	if len(read_adapters['adapters'][i]) > 0:
 		break
 
+output_file = open(path_to_poreoutput.replace("output", "adapters_table"), "w")
 
-output_file.write("\t".join(list(read_adapters.keys()) + list(read_adapters['adapters'][i][0].keys())) + "\n")
+output_file.write("\t".join(['readid', 'runid', 'sampleid', 'read'] + list(read_adapters['adapters'][i][0].keys())) + "\n")
 for i in range(len(read_adapters['readid'])):
 	for j in range(len(read_adapters['adapters'][i])):
 		string_output = []
-		for read_key in read_adapters.keys():
-			if read_key != 'adapters':
-				string_output.append(read_adapters[read_key][i])
+		for read_key in ['readid', 'runid', 'sampleid', 'read']:
+			string_output.append(read_adapters[read_key][i])
 		output_file.write("\t".join(string_output + list(read_adapters['adapters'][i][j].values())) + "\n")
+
+output_file.close()
+
+output_file = open(path_to_poreoutput.replace("output", "barcodes_table"), "w")
+
+output_file.write("\t".join(['readid', 'runid', 'sampleid', 'read', 'which_end', 'barcode', 'score']) + "\n")
+for i in range(len(read_adapters['readid'])):
+	for j in range(len(read_adapters['start_barcodes'][i])):
+		string_output = []
+		for read_key in ['readid', 'runid', 'sampleid', 'read']:
+			string_output.append(read_adapters[read_key][i])
+		string_output.append('start')
+		
+		output_file.write("\t".join(string_output +
+						read_adapters['start_barcodes'][i][j].replace("(", "").replace("%)", "").split(" ")) +
+					"\n")
 
 output_file.close()
 
