@@ -5,11 +5,11 @@ call_files <- list.files(pattern = "./*porechop_finalcall_table")
 call_table <- data_frame()
 for (file in call_files) {
   call_table <- rbind(call_table,
-                         read_tsv(file,
+                         cbind(file = file, read_tsv(file,
                                   col_names = c("readid", "runid", "sampleid",
                                                 "read", "ch", "start_time",
                                                 "final_barcode_call"),
-                                  skip = 1))
+                                  skip = 1)))
 }
 
 
@@ -38,6 +38,18 @@ call_table %>%
   mutate(prop = (n / sum(n)) * 100) %>%
   select(-n) %>%
   spread(key = sampleid, value = prop)
+
+call_table %>%
+  count(file, final_barcode_call) %>%
+  spread(key = file, value = n)
+
+call_table %>%
+  count(file, final_barcode_call) %>%
+  group_by(file) %>%
+  mutate(prop = (n / sum(n)) * 100) %>%
+  select(-n) %>%
+  spread(key = file, value = prop)
+
 
 
 barcodes_table <- barcodes_table %>%
