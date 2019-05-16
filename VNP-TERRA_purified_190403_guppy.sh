@@ -26,11 +26,11 @@
 #                                          -t 32 --verbosity 3 > guppy_VNP-TERRA_purified_190403.porechop_output
 #
 #srun -n1 -N1 --exclusive shifter python3 basecall_scripts/parse_porechop_output.py guppy_VNP-TERRA_purified_190403.porechop_output
-
-barcoded=( "Joana_polyA_VNP" "Joana_polyA_VNP_no_PCR" "Joana_TERRA_VNP" "Joana_TERRA_VNP_no_PCR" "none" )
-
-
-for barcode in "${barcoded[@]}"; do
+#
+#barcoded=( "Joana_polyA_VNP" "Joana_polyA_VNP_no_PCR" "Joana_TERRA_VNP" "Joana_TERRA_VNP_no_PCR" "none" )
+#
+#
+#for barcode in "${barcoded[@]}"; do
 #
 #srun -n1 -N1 --exclusive shifter /FastQC/fastqc -k 6 --nano --threads 32 20190403_second_run/VNP-TERRA_purified_190403/VNP-TERRA_purified_190403/20190403_0937_MN29796_FAK43621_52980800/fastq_guppy/barcode_separated/$barcode.fastq
 #
@@ -55,19 +55,31 @@ for barcode in "${barcoded[@]}"; do
 #                                     alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice.sam
 #
 #
-srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont.sam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont_q30.depth"
-srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice.sam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice_q30.depth"
-srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont.sam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont_q30.depth"
-srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice.sam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice_q30.depth"
-
-srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont.sam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont_primary.depth"
-srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice.sam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice_primary.depth"
-srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont.sam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont_primary.depth"
-srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice.sam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice_primary.depth"
-
-
-done
-
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont.sam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont_q30.depth"
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice.sam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice_q30.depth"
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont.sam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont_q30.depth"
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice.sam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice_q30.depth"
+#
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont.sam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont_primary.depth"
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice.sam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice_primary.depth"
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont.sam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont_primary.depth"
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice.sam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice_primary.depth"
+#
+#
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont.sam | samtools view -bq 30 - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont_q30.bam; samtools index alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont_q30.bam"
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice.sam | samtools view -bq 30 - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice_q30.bam; samtools index alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice_q30.bam"
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont.sam | samtools view -bq 30 - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont_q30.bam; samtools index alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont_q30.bam"
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice.sam | samtools view -bq 30 - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice_q30.bam; samtools index alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice_q30.bam"
+#
+#
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont.sam | samtools view -bF 256 - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont_primary.bam; samtools index alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_mapont_primary.bam"
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice.sam | samtools view -bF 256 - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice_primary.bam; samtools index alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_rhietman_splice_primary.bam"
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont.sam | samtools view -bF 256 - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont_primary.bam; samtools index alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_mapont_primary.bam"
+#srun -n1 -N1 --exclusive shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice.sam | samtools view -bF 256 - > alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice_primary.bam; samtools index alignment_outputs/VNP-TERRA_purified_190403_${barcode}_on_GRCh38_splice_primary.bam"
+#
+#
+#done
+#
 #srun -n1 -N1 --exclusive shifter /bbmap/kmercoverage.sh in=20190403_second_run/VNP-TERRA_purified_190403/VNP-TERRA_purified_190403/20190403_0937_MN29796_FAK43621_52980800/fastq_guppy/pass_trimmed.fastq \
 #                                                        out=20190403_second_run/VNP-TERRA_purified_190403/VNP-TERRA_purified_190403/20190403_0937_MN29796_FAK43621_52980800/fastq_guppy/pass_trimmed.kmer_coverage \
 #                                                        threads=32 k=6 qin=33
@@ -91,6 +103,15 @@ done
 #
 #
 #srun -n1 -N1 --exclusive grep -o -n 'TT[AG]GGG' 20190403_second_run/VNP-TERRA_purified_190403/VNP-TERRA_purified_190403/20190403_0937_MN29796_FAK43621_52980800/fastq_guppy/pass_trimmed_3joint_repeats.fastq | cut -d : -f 1 | uniq -c > 20190403_second_run/VNP-TERRA_purified_190403/VNP-TERRA_purified_190403/20190403_0937_MN29796_FAK43621_52980800/fastq_guppy/pass_trimmed_3joint_repeats.TTAGGG_counts
+
+# Map reads to GRCh38, then use the ones that do NOT map to map agains the Riethman lab assembly
+srun -n1 -N1 --exclusive shifter bash -c "cat 20190403_second_run/VNP-TERRA_purified_190403/VNP-TERRA_purified_190403/20190403_0937_MN29796_FAK43621_52980800/fastq_guppy/barcode_separated/*fastq |
+                                          /minimap2/minimap2 -a -x map-ont -t 32 \
+                                              references/Homo_sapiens.GRCh38.dna.primary_assembly.fa - |
+                                          samtools view -f 4 -b - | samtools sort -n - | samtools fastq - |
+                                          /minimap2/minimap2 -a -x map-ont -t 32 \
+                                              references/ConcatenatedFASTAAassemblies_hTel.txt - > alignment_outputs/VNP-TERRA_purified_190403_maps_only_to_riethman_assembly.sam &&
+                                          samtools sort -@ 32 alignment_outputs/VNP-TERRA_purified_190403_maps_only_to_riethman_assembly.sam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP-TERRA_purified_190403_maps_only_to_riethman_assembly_q30.depth"
 
 echo "Statistics for job $SLURM_JOB_ID:"
 sacct --format="JOBID,NodeList,NNodes,Start,End,Elapsed,AllocCPUs,CPUTime,AveDiskRead,AveDiskWrite,MaxRSS,MaxVMSize,exitcode,derivedexitcode" -j $SLURM_JOB_ID
