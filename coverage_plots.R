@@ -11,17 +11,20 @@ depth_frame <- data_frame()
 
 for (file in rhietman_mapont_files) {
   
+  if (grepl("Joana_TERRA_VNP", file)) {
   depth_frame <- rbind(depth_frame,
                        cbind(data_frame(file = file),
                              read_tsv(paste0("alignment_outputs/", file),
                                       col_names = c("chr", "pos", "depth"),
                                       col_types = "cii")))
-  
+  }
 }
 
 depth_frame <- as_data_frame(depth_frame)
 
-depth_frame <- depth_frame %>% separate(chr, into = c("chr"), extra = "drop")
+depth_frame <- depth_frame %>%
+                 separate(chr, into = c("chr"), extra = "drop") %>%
+                 separate(file, sep = "_Joana_TERRA_VNP", into = c("file"), extra = "drop")
 
 depth_frame$chr <- factor(depth_frame$chr,
                           levels = c("1ptel", "1qtel", "2ptel", "2qtel", "3ptel",
@@ -54,17 +57,20 @@ tel_29_bp_frame$chr <- factor(tel_29_bp_frame$chr,
 
 
 for (this_file in unique(depth_frame$file)) {
-  png(paste0("coverage_plots/coverage_", file, ".png"), width = 1280, height = 1024)
-  print(depth_frame %>% filter(file == this_file) %>%
+  ggsave(paste0("coverage_plots/coverage_", this_file, ".png"),
+         depth_frame %>% filter(file == this_file) %>%
+          group_by(chr, pos) %>%
+          summarise(depth = sum(depth, na.rm = TRUE)) %>%
           ggplot(aes(x = pos, y = depth)) +
           geom_line() +
           facet_wrap(~ chr) +
           labs(main = this_file) +
-          scale_x_continuous(name = this_file))
-  dev.off()
+          scale_x_continuous(name = this_file) +
+          theme_bw(),
+      width = 20, height = 15, units = "cm", device = png())
 
-  png(paste0("coverage_plots/coverage_", file, "_zoomed.png"), width = 1280, height = 1024)
-  print(left_join(data_frame(chr = factor(rep(unique(depth_frame$chr), each = 500000),
+ggsave(paste0("coverage_plots/coverage_", this_file, "_zoomed.png"),
+       left_join(data_frame(chr = factor(rep(unique(depth_frame$chr), each = 10000),
                                           levels = c("1ptel", "1qtel", "2ptel", "2qtel", "3ptel",
                                                      "3qtel", "4ptel", "4qtel", "5ptel", "5qtel",
                                                      "6ptel", "6qtel", "7qtel", "7ptel", "8ptel", "8qtel",
@@ -75,17 +81,30 @@ for (this_file in unique(depth_frame$file)) {
                                                      "20ptel", "20qtel", "21qtel",  "22qtel",
                                                      "XpYptel", "Xqtel", "Yqtel"),
                                            ordered = TRUE),
-                               pos = rep(1:500000, length(unique(depth_frame$chr)) )),
-                  depth_frame %>% filter(file == this_file) %>% select(chr, pos, depth)) %>%
+                               pos = rep(1:10000, length(unique(depth_frame$chr)) )),
+                  depth_frame %>% filter(file == this_file) %>% filter(pos <= 10000) %>%
+                    group_by(chr, pos) %>%
+                    summarise(depth = sum(depth, na.rm = TRUE)) %>% select(chr, pos, depth)) %>%
           mutate(depth = ifelse(is.na(depth), 0, depth)) %>%
-          ggplot(aes(x = pos, y = depth)) +
-          geom_line() +
-          facet_wrap(~ chr) +
+          ggplot() +
+          geom_line(mapping = aes(x = pos, y = depth)) +
+          geom_rect(data = tel_29_bp_frame,
+                    mapping = aes(xmin = start,
+                                  xmax = end,
+                                  ymin = 0,
+                                  ymax = Inf),
+                    alpha = I(1/2),
+                    fill = "blue") +
+       facet_wrap(~ chr) +
           labs(main = this_file) +
-          scale_x_continuous(name = this_file))
-  dev.off()
+          scale_x_continuous(name = this_file,
+                     breaks = c(1, 2000, 4000, 6000, 8000, 10000),
+                     limits = c(1, 10000)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)),
+      width = 20, height = 15, units = "cm", device = png())
 
- 
+
 }
 
 
@@ -106,12 +125,11 @@ depth_frame <- left_join(data_frame(chr = rep(factor(rep(unique(depth_frame$chr)
                                      each = (500000*length(unique(depth_frame$chr))))),
           depth_frame %>%
             mutate(cell_type = ifelse(grepl("HeLA", file), "HeLa", "U2OS")) %>%
-            filter(grepl("Joana_TERRA_VNP", file)) %>%
             group_by(cell_type, chr, pos) %>%
             summarise(depth = sum(depth, na.rm = TRUE))) %>%
   mutate(depth = ifelse(is.na(depth), 0, depth))
 
-png("coverage_plots/coverage_U2OS.png", width = 1280, height = 1024)
+png("coverage_plots/coverage_pooled_U2OS.png", width = 1280, height = 1024)
 
 depth_frame %>%
   filter(cell_type == "U2OS") %>%
@@ -132,7 +150,7 @@ depth_frame %>%
 
 dev.off()
 
-png("coverage_plots/coverage_HeLa.png", width = 1280, height = 1024)
+png("coverage_plots/coverage_pooled_HeLa.png", width = 1280, height = 1024)
 
 depth_frame %>%
   filter(cell_type == "HeLa") %>%
@@ -155,7 +173,7 @@ depth_frame %>%
 
 dev.off()
 
-png("coverage_plots/coverage_U2OS_zoomed.png", width = 1280, height = 1024)
+png("coverage_plots/coverage_pooled_U2OS_zoomed.png", width = 1280, height = 1024)
 
 depth_frame %>%
   filter(cell_type == "U2OS") %>%
@@ -179,7 +197,7 @@ depth_frame %>%
 
 dev.off()
 
-png("coverage_plots/coverage_HeLa_zoomed.png", width = 1280, height = 1024)
+png("coverage_plots/coverage_pooled_HeLa_zoomed.png", width = 1280, height = 1024)
 
 depth_frame %>%
   filter(cell_type == "HeLa") %>%
