@@ -13,11 +13,9 @@ RUN apt-get update \
     && wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.7_linux64.tar.gz \
     && tar -xvf ont-guppy-cpu_2.3.7_linux64.tar.gz
 
-COPY ./adapters.py /adapters.py
 RUN apt-get update \
     && apt-get install -y python3 python3-pip git build-essential ipython3 \
     && git clone https://github.com/rrwick/Porechop.git \
-    && mv /adapters.py Porechop/porechop/adapters.py \
     && cd Porechop \
     && python3 setup.py install
 
@@ -80,5 +78,3 @@ RUN apt-get update \
     && apt-get install -y python-pip python2.7 \
     && pip install telomerehunter
  
-RUN R -e "source('https://bioconductor.org/biocLite.R'); biocLite('DESeq2')"
-
