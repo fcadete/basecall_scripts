@@ -15,16 +15,14 @@ subtelomere_levels <- c("1ptel", "1qtel", "2ptel", "2qtel", "3ptel",
                         "19qtel", "20ptel", "20qtel", "21qtel", "22qtel",
                         "XpYptel", "Xqtel", "Yqtel")
 
-rhietman_mapont_files <- list.files(path = "alignment_outputs/",
-                                    pattern = "*rhietman_mapont_primary.depth")
+telomerehunter_depth_files <- list.files(path = "telomere_hunter_results/depths_from_telomeric_reads/",
+                                    pattern = "*filtered_intratelomeric_primary.depth")
 
 depth_frame <- data_frame()
 
-for (file in rhietman_mapont_files) {
+for (file in telomerehunter_depth_files) {
   
-  if (grepl("Joana_TERRA_VNP", file)) {
-
-  this_file_depth <- read_tsv(paste0("alignment_outputs/", file),
+  this_file_depth <- read_tsv(paste0("telomere_hunter_results/depths_from_telomeric_reads/", file),
                                       col_names = c("chr", "pos", "depth"),
                                       col_types = "cii")
 
@@ -33,14 +31,14 @@ for (file in rhietman_mapont_files) {
                        cbind(data_frame(file = file),
                              this_file_depth))
   }
-  }
 }
 
 depth_frame <- as_data_frame(depth_frame)
 
 depth_frame <- depth_frame %>%
                  separate(chr, into = c("chr"), extra = "drop") %>%
-                 separate(file, sep = "_Joana_TERRA_VNP", into = c("file"), extra = "drop")
+                 separate(file, sep = "_filtered_intratelomeric_primary.depth",
+                          into = c("file"), extra = "drop")
 
 depth_frame$chr <- factor(depth_frame$chr,
                           levels = subtelomere_levels,
@@ -60,91 +58,6 @@ tel_29_bp_frame <- tel_29_bp_frame %>% separate(chr, into = c("chr"), extra = "d
 tel_29_bp_frame$chr <- factor(tel_29_bp_frame$chr,
                           levels = subtelomere_levels,
                           ordered = TRUE)
-
-rajika_seq_matches <- read_delim("rajika_sequence_blast.txt",
-                              delim = "\t",
-                              col_names=c("qseqid", "chr", "pident",
-                                          "length", "mismatch", "gapopen",
-                                           "qstart", "qend",
-                                           "start", "end",
-                                           "evalue", "bitscore"))
-
-rajika_seq_matches <- rajika_seq_matches %>% separate(chr, into = c("chr"), extra = "drop")
-
-rajika_seq_matches$chr <- factor(rajika_seq_matches$chr,
-                          levels = subtelomere_levels,
-                          ordered = TRUE)
-
-rajika_seq_full_matches <- filter(rajika_seq_matches,
-                                  length == 19,
-                                  pident == 100.000)
-
-
-
-for (one_file in unique(depth_frame$file)) {
-   if (nrow(depth_frame %>% filter(file == one_file, pos <= 2000))>0) {
-         png(paste0("coverage_plots/by_sample/", one_file, ".png"), width = 1280, height = 1024)
-         p <- depth_frame %>%
-                 filter(file == one_file, pos <= 2000) %>%
-                 ggplot(aes(x = pos, y = depth)) +
-                    geom_line() +
-                    facet_wrap(~ chr) +
-                    scale_x_continuous(name = "Distance from telomere repeats (bp)",
-                                       breaks = c(1, 500, 1000, 1500, 2000), 
-                                       limits = c(1, 2000)) +
-                    theme_bw() +
-                    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-                    labs(title=one_file)
-         print(p)
-         dev.off()
-    }
-}
-
-#
-#for (this_file in unique(depth_frame$file)) {
-#  ggsave(paste0("coverage_plots/coverage_", this_file, ".png"),
-#         depth_frame %>% filter(file == this_file) %>%
-#          group_by(chr, pos) %>%
-#          summarise(depth = sum(depth, na.rm = TRUE)) %>%
-#          ggplot(aes(x = pos, y = depth)) +
-#          geom_line() +
-#          facet_wrap(~ chr) +
-#          labs(main = this_file) +
-#          scale_x_continuous(name = this_file) +
-#          theme_bw(),
-#      width = 20, height = 15, units = "cm", device = png())
-#
-#ggsave(paste0("coverage_plots/coverage_", this_file, "_zoomed.png"),
-#       left_join(data_frame(chr = factor(rep(unique(depth_frame$chr), each = 10000),
-#                                          levels = subtelomere_levels,
-#                                           ordered = TRUE),
-#                               pos = rep(1:10000, length(unique(depth_frame$chr)) )),
-#                  depth_frame %>% filter(file == this_file) %>% filter(pos <= 10000) %>%
-#                    group_by(chr, pos) %>%
-#                    summarise(depth = sum(depth, na.rm = TRUE)) %>% select(chr, pos, depth)) %>%
-#          mutate(depth = ifelse(is.na(depth), 0, depth)) %>%
-#          ggplot() +
-#          geom_line(mapping = aes(x = pos, y = depth)) +
-#          geom_rect(data = tel_29_bp_frame,
-#                    mapping = aes(xmin = start,
-#                                  xmax = end,
-#                                  ymin = 0,
-#                                  ymax = Inf,
-#                                  fill = bitscore),
-#                    alpha = I(1/2)) +
-#          scale_fill_viridis_c() +
-#       facet_wrap(~ chr) +
-#          labs(main = this_file) +
-#          scale_x_continuous(name = this_file,
-#                     breaks = c(1, 2000, 4000, 6000, 8000, 10000),
-#                     limits = c(1, 10000)) +
-#  theme_bw() +
-#  theme(axis.text.x = element_text(angle = 45, hjust = 1)),
-#      width = 20, height = 15, units = "cm", device = png())
-#
-#
-#}
-#
 
 depth_frame <- depth_frame %>%
      mutate(cell_type = ifelse(grepl("HeL", file),
@@ -201,7 +114,7 @@ full_join(full_join(total_reads, primed_reads), subtelomere_end_reads) %>%
      select(file, everything()) %>%
      write_tsv("table_for_joana.txt")
 
-pdf("coverage_plots/coverage_normalized.pdf", width = 16, height = 12)
+pdf("telomere_hunter_results/coverage_plots/coverage_normalized.pdf", width = 16, height = 12)
 
 depth_frame_by_file %>%
    drop_na() %>%
@@ -364,145 +277,5 @@ depth_frame %>%
       theme_bw()
 
 dev.off()
-
-
-for (this_cell_type in unique(depth_frame$cell_type)) {
-
-   png(paste0("coverage_plots/coverage_pooled_", this_cell_type, ".png"),
-       width = 1280, height = 1024)
-   
-   depth_frame %>%
-     filter(cell_type == this_cell_type) %>%
-     ggplot() +
-     geom_rect(data = tel_29_bp_frame,
-               mapping = aes(xmin = start,
-                             xmax = end,
-                             ymin = 0,
-                             ymax = Inf,
-                             fill = bitscore),
-               alpha = I(1/2)) +
-      scale_fill_viridis_c() +
-     geom_line(mapping = aes(x = pos, y = depth)) +
-     facet_wrap( ~ chr) +
-     scale_x_continuous(name = "Distance from telomere repeats (bp)",
-                        breaks = c(1, 100000, 200000, 300000, 400000, 500000)) +
-     theme_bw() +
-     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-     labs(title = this_cell_type)
-   
-   dev.off()
-   
-   png(paste0("coverage_plots/coverage_pooled_", this_cell_type, "_zoomed.png"),
-       width = 1280, height = 1024)
-   
-   depth_frame %>%
-     filter(cell_type == this_cell_type) %>%
-     filter(pos <= 10000) %>%
-     droplevels() %>%
-     ggplot() +
-     geom_rect(data = tel_29_bp_frame,
-               mapping = aes(xmin = start,
-                             xmax = end,
-                             ymin = 0,
-                             ymax = Inf,
-                             fill = bitscore),
-               alpha = I(1/2)) +
-     scale_fill_viridis_c() +
-     geom_line(mapping = aes(x = pos, y = depth)) +
-     facet_wrap( ~ chr) +
-     scale_x_continuous(name = "Distance from telomere repeats (bp)",
-                        breaks = c(1, 2000, 4000, 6000, 8000, 10000),
-                        limits = c(1, 10000)) +
-     theme_bw() +
-     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-     labs(title = this_cell_type)
-   
-   dev.off()
-   
-   png(paste0("coverage_plots/coverage_pooled_", this_cell_type, "_extra_zoomed.png"),
-       width = 1280, height = 1024)
-   
-   depth_frame %>%
-     filter(cell_type == this_cell_type) %>%
-     filter(pos <= 2000) %>%
-     droplevels() %>%
-     ggplot() +
-     geom_rect(data = tel_29_bp_frame,
-               mapping = aes(xmin = start,
-                             xmax = end,
-                             ymin = 0,
-                             ymax = Inf,
-                             fill = bitscore),
-               alpha = I(1/2)) +
-     scale_fill_viridis_c() +
-     geom_line(mapping = aes(x = pos, y = depth)) +
-     facet_wrap( ~ chr) +
-     scale_x_continuous(name = "Distance from telomere repeats (bp)",
-                        breaks = c(1, 500, 1000, 1500, 2000),
-                        limits = c(1, 2000)) +
-     theme_bw() +
-     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-     labs(title = this_cell_type)
-   
-   dev.off()
-    
-   png(paste0("coverage_plots/coverage_pooled_", this_cell_type, "_extra_zoomed_rajikas_targets.png"),
-       width = 1280, height = 1024)
-   
-   depth_frame %>%
-     filter(cell_type == this_cell_type) %>%
-     filter(pos <= 2000) %>%
-     droplevels() %>%
-     ggplot() +
-     geom_rect(data = rajika_seq_matches,
-               mapping = aes(xmin = start,
-                             xmax = end,
-                             ymin = 0,
-                             ymax = Inf,
-                             fill = bitscore),
-               alpha = I(1/2)) +
-     scale_fill_viridis_c() +
-     geom_line(mapping = aes(x = pos, y = depth)) +
-     facet_wrap( ~ chr) +
-     scale_x_continuous(name = "Distance from telomere repeats (bp)",
-                        breaks = c(1, 500, 1000, 1500, 2000),
-                        limits = c(1, 2000)) +
-     theme_bw() +
-     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-     labs(title = this_cell_type)
-   
-   dev.off()
-    
-   png(paste0("coverage_plots/coverage_pooled_", this_cell_type, "_extra_zoomed_rajikas_full_match_targets.png"),
-       width = 1280, height = 1024)
-   
-   depth_frame %>%
-     filter(cell_type == this_cell_type) %>%
-     filter(pos <= 2000) %>%
-     droplevels() %>%
-     ggplot() +
-     geom_rect(data = rajika_seq_full_matches,
-               mapping = aes(xmin = start,
-                             xmax = end,
-                             ymin = 0,
-                             ymax = Inf,
-                             fill = bitscore),
-               alpha = I(1/2)) +
-     scale_fill_viridis_c() +
-     geom_line(mapping = aes(x = pos, y = depth)) +
-     facet_wrap( ~ chr) +
-     scale_x_continuous(name = "Distance from telomere repeats (bp)",
-                        breaks = c(1, 500, 1000, 1500, 2000),
-                        limits = c(1, 2000)) +
-     theme_bw() +
-     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-     labs(title = this_cell_type)
-   
-   dev.off()
-   
-  
-  
-}
-
 
 
