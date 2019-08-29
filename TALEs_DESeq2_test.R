@@ -25,7 +25,7 @@ bam_files <- list.files(path = "TALEs/soft_clipped_ends", pattern = "*bam")
 
 subtelomere_bed <- read_tsv("subtelomere_starts_1_5000.bed", col_names = c("seqnames", "start", "end"))
 
-subtelomere_bed %>% mutate(end = 2000)
+subtelomere_bed <- subtelomere_bed %>% mutate(end = 2000)
 
 subtelomere_ranges <- GRanges(subtelomere_bed)
 
