@@ -117,6 +117,15 @@ full_join(total_reads, subtelomere_end_reads) %>%
           subtelomere_end_reads) %>%
    write_tsv(path = "TALEs/TALEs_summary_table.txt")
 
+
+TALEs_coverage_frame <- depth_frame_by_barcode %>%
+                           drop_na() %>%
+                           filter(pos <= 2000) %>%
+                           left_join(barcode_to_conditions)
+save(TALEs_coverage_frame,
+     file = "coverage_frames/TALES_coverage_frame.RData")
+
+
 pdf("TALEs/coverage_plots/coverage_normalized.pdf", width = 16, height = 12)
 
 depth_frame_by_barcode %>%

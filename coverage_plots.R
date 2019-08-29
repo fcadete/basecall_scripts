@@ -201,6 +201,14 @@ full_join(full_join(total_reads, primed_reads), subtelomere_end_reads) %>%
      select(file, everything()) %>%
      write_tsv("table_for_joana.txt")
 
+
+other_coverage_frame <- depth_frame_by_file %>%
+                           drop_na() %>%
+                           filter(pos <= 2000) %>%
+                           left_join(total_reads)
+save(other_coverage_frame,
+     file = "coverage_frames/other_coverage_frame.RData")
+
 pdf("coverage_plots/coverage_normalized.pdf", width = 16, height = 12)
 
 depth_frame_by_file %>%
