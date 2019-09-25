@@ -60,24 +60,6 @@ tel_29_bp_frame$chr <- factor(tel_29_bp_frame$chr,
                           levels = subtelomere_levels,
                           ordered = TRUE)
 
-rajika_seq_matches <- read_delim("rajika_sequence_blast.txt",
-                              delim = "\t",
-                              col_names=c("qseqid", "chr", "pident",
-                                          "length", "mismatch", "gapopen",
-                                           "qstart", "qend",
-                                           "start", "end",
-                                           "evalue", "bitscore"))
-
-rajika_seq_matches <- rajika_seq_matches %>% separate(chr, into = c("chr"), extra = "drop")
-
-rajika_seq_matches$chr <- factor(rajika_seq_matches$chr,
-                          levels = subtelomere_levels,
-                          ordered = TRUE)
-
-rajika_seq_full_matches <- filter(rajika_seq_matches,
-                                  length == 19,
-                                  pident == 100.000)
-
 barcode_to_conditions <- read_tsv("190807_Seventh_run/Barcodes_clean.txt",
                                   col_names = c("cell_type", "date", "barcode")) %>%
                            mutate(barcode = str_replace(barcode, "NB", "BC"))
@@ -133,7 +115,7 @@ depth_frame_by_barcode %>%
    filter(pos <= 2000) %>%
    left_join(barcode_to_conditions) %>%
    ggplot() +
-      geom_rect(data = rajika_seq_full_matches %>% filter(end <= 2000),
+      geom_rect(data = tel_29_bp_frame %>% filter(end <= 2000),
                 mapping = aes(xmin = start,
                               xmax = end,
                               ymin = 0,
@@ -156,7 +138,7 @@ depth_frame_by_barcode %>%
    left_join(total_reads) %>%
    left_join(barcode_to_conditions) %>%
    ggplot() +
-      geom_rect(data = rajika_seq_full_matches %>% filter(end <= 2000),
+      geom_rect(data = tel_29_bp_frame %>% filter(end <= 2000),
                 mapping = aes(xmin = start,
                               xmax = end,
                               ymin = 0,
@@ -186,7 +168,7 @@ depth_frame_by_barcode_end %>%
    summarise(depth = sum(depth),
              total_reads = sum(total_reads)) %>%
    ggplot() +
-      geom_rect(data = rajika_seq_full_matches %>%
+      geom_rect(data = tel_29_bp_frame %>%
                           filter(end <= 2000),
                 mapping = aes(xmin = start,
                               xmax = end,
@@ -210,7 +192,7 @@ depth_frame_by_barcode_end %>%
    summarise(depth = sum(depth),
              total_reads = sum(total_reads)) %>%
    ggplot() +
-      geom_rect(data = rajika_seq_full_matches %>%
+      geom_rect(data = tel_29_bp_frame %>%
                           filter(end <= 2000),
                 mapping = aes(xmin = start,
                               xmax = end,
@@ -235,7 +217,7 @@ depth_frame_by_barcode_end %>%
    summarise(depth = sum(depth),
              total_reads = sum(total_reads)) %>%
    ggplot() +
-      geom_rect(data = rajika_seq_full_matches %>%
+      geom_rect(data = tel_29_bp_frame %>%
                           filter(end <= 2000),
                 mapping = aes(xmin = start,
                               xmax = end,
@@ -258,7 +240,7 @@ depth_frame_by_barcode_end %>%
    summarise(depth = sum(depth),
              total_reads = sum(total_reads)) %>%
    ggplot() +
-      geom_rect(data = rajika_seq_full_matches %>%
+      geom_rect(data = tel_29_bp_frame %>%
                           filter(end <= 2000),
                 mapping = aes(xmin = start,
                               xmax = end,

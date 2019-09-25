@@ -113,26 +113,41 @@ depth_frame_by_barcode <- left_join(data_frame(chr = rep(factor(rep(unique(depth
             select(barcode, primer = file, chr, pos, depth)) %>%
   mutate(depth = ifelse(is.na(depth), 0, depth))
 
-#
-#total_reads <- read_tsv("guppy_VNP_purified_TERRA_HeLa-HEK293_20190807.porechop_finalcall_table") %>%
-#                 dplyr::count(final_barcode_call) %>%
-#                 select(barcode = final_barcode_call,
-#                        total_reads = n) %>%
-#                 left_join(barcode_to_conditions)
-#
-#subtelomere_end_reads <- read_delim("HeLa-HEK_barcoded/soft_clipped_end_counts.txt",
-#                                  col_names = c("file", "reads"), delim = " ") %>%
-#                             mutate(barcode = str_extract(file, "BC\\d\\d"),
-#                                    barcode = ifelse(is.na(barcode), "none", barcode)) %>%
-#                             group_by(barcode) %>%
-#                             summarise(subtelomere_end_reads = sum(reads))
-#
-#full_join(total_reads, subtelomere_end_reads) %>%
-#   select(barcode, condition,
-#          sample, total_reads,
-#          subtelomere_end_reads) %>%
-#   write_tsv(path = "HeLa-HEK_barcoded/HeLa-HEK_barcoded_summary_table.txt")
-#
+
+total_reads <- read_tsv("guppy_VNP_purified_TERRA_HeLa-HEK293_20190807.porechop_finalcall_table") %>%
+                 dplyr::count(final_barcode_call) %>%
+                 select(barcode = final_barcode_call,
+                        total_reads = n) %>%
+                 left_join(barcode_to_conditions)
+
+reads_by_primer <- data.frame()
+
+for (this_barcode in unique(total_reads$barcode)) {
+
+    this_barcode_primers <- read_tsv(paste0("HeLa-HEK_barcoded/terra_primer_separated/",
+                                            this_barcode, ".porechop_finalcall_table")) %>%
+                               dplyr::count(final_barcode_call) %>%
+                               select(primer = final_barcode_call,
+                                      primered_reads = n) %>%
+                               mutate(barcode = this_barcode)
+
+    reads_by_primer <- bind_rows(reads_by_primer, this_barcode_primers) 
+
+}
+
+subtelomere_end_reads <- read_delim("HeLa-HEK_barcoded/terra_primer_separated_soft_clipped_end_counts.txt",
+                                  col_names = c("file", "reads"), delim = " ") %>%
+                             mutate(barcode = str_extract(file, "BC\\d\\d"),
+                                    barcode = ifelse(is.na(barcode), "none", barcode)) %>%
+                             group_by(barcode) %>%
+                             summarise(subtelomere_end_reads = sum(reads))
+
+full_join(total_reads, filter(reads_by_primer, primer == "Joana_TERRA_VNP_no_PCR")) %>%
+   left_join(subtelomere_end_reads) %>%
+   select(barcode, cell_type, total_reads,
+          primered_reads, subtelomere_end_reads) %>%
+   write_tsv(path = "HeLa-HEK_barcoded/HeLa-HEK_barcoded_primered_summary_table.txt")
+
 
 pdf("HeLa-HEK_barcoded/coverage_plots/coverage_by_primer.pdf", width = 16, height = 12)
 
