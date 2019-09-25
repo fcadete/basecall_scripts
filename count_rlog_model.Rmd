@@ -1,0 +1,121 @@
+---
+title: "Rlog_trn for downstream analysis"
+output:
+  html_document:
+    df_print: paged
+---
+
+The point of this notebook is to explore counts and rlogs for downstream analysis, which will include ML (linear or logistic regression). For this purpose we can use one of four measures:
+
++ `counts`: absolute counts per subtelomere;
++ `counts / total_reads`: absolute counts divided by total library size;
++ `rlogs`: regularized logarithm transformation of DESeq2, using default size factor estimations;
++ `rlogs_trn`: regularized logarithm transformation as above, but using size factor eestimated from the total library size.
+
+My initial assumption is that the `rlogs` are going to be more informative. Compared to `counts` or `counts / total_reads` they have the advantage of having their variance shrinked for low counts. From an explanation by Michael Love:
+
+> "The idea is to shrink sample-to-sample differences when there is little information (low counts) and to preserve these differences when there is information (high counts)."
+
+It's normalisation also makes it more amenable for machine-learning, clustering and other techniques. What might complicate matters is that the `rlogs` use the size factors estimated by DESeq2. These assume that most genes will not be differentially expressed, and use only the counts of the reads that are mapped to genes. These assumptions might not hold in our setup, given that we are already selecting experimentally for TERRA transcripts. The proportion of mapped reads themselves has some information. For example, we get a lot fewer mapped transcripts for HeLa cells than U2OS, likely a reflection of the fact that HeLa has less TERRA overall than U2OS. If we are using only the subtelomeric counts, this difference might not be detected. This is why I will also use the `rlogs_trn`, where instead of the DESeq2 size factors I use size factors derived from the total read number, such that for sample `i`:
+
+\[sizeFactor_i = \frac{totalReads_i}{\frac{1}{n}\sum_{i=1}^{n}totalReads_i}\]
+
+Now to the nitty gritty. First we load libraries and a table I've previously prepared with the count and rlog data (also with some data related to promoter motifs for latter exploration). Then we create a column for the `counts / total_reads` metric. Finally we visualise the four metrics using scatterplots.
+
+```{r}
+
+library(tidyverse)
+library(GGally)
+library(cowplot)
+
+count_repeat_frame <- read_tsv("../count_repeat_frame.tsv")
+
+subtelomere_levels <- c("1ptel", "1qtel", "2ptel", "2qtel", "3ptel",
+                        "3qtel", "4ptel", "4qtel", "5ptel", "5qtel",
+                        "6ptel", "6qtel", "7qtel", "7ptel", "8ptel", "8qtel",
+                        "9ptel", "9qtel", "10ptel", "10qtel", "11ptel", "11qtel",
+                        "12ptel", "12qtel", "13qtel", "14qtel", "15qtel", "16ptel",
+                        "16qtel", "17ptel", "17qtel", "18ptel", "18qtel", "19ptel",
+                        "19qtel", "20ptel", "20qtel", "21qtel", "22qtel",
+                        "XpYptel", "Xqtel", "Yqtel")
+
+count_repeat_frame <- count_repeat_frame %>%
+  mutate(counts_trn = counts / total_reads,
+         chr = factor(chr,
+                      levels = subtelomere_levels,
+                      ordered = TRUE))
+
+ggpairs(count_repeat_frame %>% drop_na(),
+        columns = c("counts", "counts_trn", "rlog", "rlog_trn"))
+
+```
+
+There is overall a correlation between all the metrics. This correlation is not linear between the two counts and the two rlog metrics, as expected (remember that the rlogs include a log2 transformation). The `counts` and `counts_trn` have a very long right tail that makes visualisation difficult. As for the `rlog` and `rlog_trn`, they seem to be in broad agreement, but along three or four different slopes. Do they correspond to different samples or cell types?
+
+```{r}
+
+p1 <- ggplot(count_repeat_frame %>% drop_na(),
+             mapping = aes(x = rlog, y = rlog_trn,
+                           colour = sample, alpha = I(1/3))) +
+  geom_point() +
+  theme(legend.position = "none") +
+  labs(title = "Coloured by sample")
+
+p2 <- ggplot(count_repeat_frame %>% drop_na(),
+             mapping = aes(x = rlog, y = rlog_trn,
+                           colour = cell_type, alpha = I(1/3))) +
+  geom_point() +
+  theme(legend.position = "none") +
+  labs(title = "Coloured by cell type")
+
+plot_grid(p1, p2,
+          align = "hv")
+
+```
+
+The different slopes in the `rlog` vs. `rlog_trn` do seem to come from the sample. This makes sense: the difference between the two metrics is the calculation of size factors and those are sample-dependent.
+
+How do these metrics look when we look at them by subtelomere? More importantly, do they recapitulate what we see in the coverage plots?
+
+```{r}
+
+ggplot(count_repeat_frame %>% drop_na(),
+       aes(x = cell_type, y = counts,
+           colour = cell_type)) +
+  geom_point() +
+  facet_wrap(~ chr) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+ggplot(count_repeat_frame %>% drop_na(),
+       aes(x = cell_type, y = counts_trn,
+           colour = cell_type)) +
+  geom_point() +
+  facet_wrap(~ chr) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+ggplot(count_repeat_frame %>% drop_na(),
+       aes(x = cell_type, y = rlog,
+           colour = cell_type)) +
+  geom_point() +
+  facet_wrap(~ chr) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+ggplot(count_repeat_frame %>% drop_na(),
+       aes(x = cell_type, y = rlog_trn,
+           colour = cell_type)) +
+  geom_point() +
+  facet_wrap(~ chr) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+
+```
+
+The `counts` and `counts_trn` clearly recapitulate the coverage plots: after all, they are the same data points without transformation! However, they become very different to read in these plots, as a few subtelomeres dominate the y axis scale.
+
+In the `rlog` and `rlog_trn` plots, it becomes easier to see differences between cell types for all subtelomeres. The `rlog` plot, however, does not clearly recapitulate the coverage plots. In particular, it puts the HeLa samples as having very high values, while we have little coverage from those. This is due to the size factor that only takes into account mapped reads and so fails to encapsulate the little overall TERRA in the HeLa samples. By contrast, the `rlog_trn` captures the differences between cell types appropriately (very high 7q expression in SAOS2 and U2OS, for example).
+
+Given this exploration, the `rlog_trn` is the metric to use for further visualisations, comparisons and ML approaches.
