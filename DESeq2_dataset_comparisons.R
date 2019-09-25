@@ -94,12 +94,16 @@ TALEs_sample_count_matrix <- TALEs_sample_count_frame %>%
                                 as.matrix()
 
 rownames(TALEs_sample_count_matrix) <- TALEs_sample_count_frame$subtelomere
+colnames(TALEs_sample_count_matrix) <- str_replace(colnames(TALEs_sample_count_matrix),
+                                                   "\\+", "_")
 
 TALEs_coldata <- TALEs_file_to_samples %>%
                     select(sample, condition) %>%
                     unique() %>%
                     drop_na() %>%
-                    as.data.frame()
+                    as.data.frame() %>%
+                    mutate(sample = str_replace(as.character(sample), "\\+", "_"),
+                           condition = str_replace(as.character(condition), "\\+", "_"))
 rownames(TALEs_coldata) <- TALEs_coldata$sample
 TALEs_coldata <- TALEs_coldata[colnames(TALEs_sample_count_matrix), ]
 
@@ -330,4 +334,182 @@ dds_HEK_U2OS <- DESeqDataSetFromMatrix(countData = HEK_U2OS_sample_count_matrix,
 
 dds_HEK_U2OS <- DESeq(dds_HEK_U2OS)
 
+diff_subtelomeres_HEK_U2OS <- results(dds_HEK_U2OS) %>%
+                                 as_tibble(rownames = "subtelomere") %>%
+                                 filter(padj <= 0.05) %>%
+                                 separate(subtelomere, into = "subtelomere")
+
+HEK_U2OS_frame_for_plotting <- rbind(
+                    filter(other_coverage_frame,
+                       (str_detect(file, "GM|HEK|SAOS|HeL") == FALSE),
+                       str_detect(file, "purified"),
+                       (str_detect(file, "pA") == FALSE)) %>%
+                     select(chr, pos, cell_type, depth, total_reads, sample = file),
+                    HEK_HeLa_coverage_frame %>%
+                       filter(cell_type == "HEK293T") %>%
+                       left_join(HEK_HeLa_total_reads) %>%
+                       select(chr, pos, cell_type, depth, total_reads, sample = barcode))
+
+ggplot(data = HEK_U2OS_frame_for_plotting,
+       mapping = aes(x = pos, y = depth, colour = cell_type)) +
+   geom_line(data = filter(other_coverage_frame,
+                       (str_detect(file, "GM|HEK|SAOS|HeL") == FALSE),
+                       str_detect(file, "purified"),
+                       (str_detect(file, "pA") == FALSE)),
+             mapping = aes(group = file)) +
+   geom_line(data = HEK_HeLa_coverage_frame %>%
+                       filter(cell_type == "HEK293T"),
+             mapping = aes(group = barcode)) +
+   facet_wrap(~ chr + (chr %in% diff_subtelomeres_HEK_U2OS$subtelomere))
+
+ggplot(mapping = aes(x = pos, y = depth / total_reads, colour = cell_type)) +
+   geom_line(data = filter(other_coverage_frame,
+                       (str_detect(file, "GM|HEK|SAOS|HeL") == FALSE),
+                       str_detect(file, "purified"),
+                       (str_detect(file, "pA") == FALSE)),
+             mapping = aes(group = file)) +
+   geom_line(data = HEK_HeLa_coverage_frame %>%
+                       filter(cell_type == "HEK293T") %>%
+                       left_join(HEK_HeLa_total_reads),
+             mapping = aes(group = barcode)) +
+   facet_wrap(~ chr )
+
+
+
 dev.off()
+
+
+
+subtelomere_small_levels <- c("1p", "1q", "2p", "2q", "3p",
+                              "3q", "4p", "4q", "5p", "5q",
+                              "6p", "6q", "7q", "7p", "8p", "8q",
+                              "9p", "9q", "10p", "10q", "11p", "11q",
+                              "12p", "12q", "13q", "14q", "15q", "16p",
+                              "16q", "17p", "17q", "18p", "18q", "19p",
+                              "19q", "20p", "20q", "21q", "22q",
+                              "XpYp", "Xq", "Yq")
+
+
+HEK_HeLa_total_reads <- left_join(HH_file_to_samples,
+                                  HEK_HeLa_total_reads)
+
+HEK_HeLa_total_reads <- as.data.frame(HEK_HeLa_total_reads,
+                                      stringsAsFactors = FALSE)
+rownames(HEK_HeLa_total_reads) <- HEK_HeLa_total_reads$sample
+
+pdf("HH_count_comparison.pdf", width = 16, height = 12)
+
+HH_sample_count_frame %>%
+   gather(-subtelomere,
+          key = sample,
+          value = counts) %>%
+   left_join(HH_file_to_samples) %>%
+   separate(subtelomere, into = c("subtelomere"), sep = "tel_") %>%
+   mutate(subtelomere = factor(subtelomere,
+                               levels = subtelomere_small_levels,
+                               ordered = TRUE),
+          diff_expressed = subtelomere %in% str_remove(diff_subtelomeres_HH$subtelomere, "tel")) %>%
+   drop_na() %>%
+   ggplot(aes(x = cell_type,
+              y = counts + 0.1,
+              colour = cell_type)) + 
+      geom_jitter(height = 0) +
+      facet_wrap(~ subtelomere + diff_expressed) +
+      scale_y_log10()
+
+HH_sample_count_frame %>%
+   gather(-subtelomere,
+          key = sample,
+          value = counts) %>%
+   left_join(HEK_HeLa_total_reads) %>%
+   separate(subtelomere, into = c("subtelomere"), sep = "tel_") %>%
+   mutate(subtelomere = factor(subtelomere,
+                               levels = subtelomere_small_levels,
+                               ordered = TRUE),
+          diff_expressed = subtelomere %in% str_remove(diff_subtelomeres_HH$subtelomere, "tel")) %>%
+   drop_na() %>%
+   ggplot(aes(x = cell_type,
+              y = (counts + 0.1) / total_reads,
+              colour = cell_type)) + 
+      geom_jitter(height = 0) +
+      facet_wrap(~ subtelomere + diff_expressed) +
+      scale_y_log10()
+
+dev.off()
+
+diff_subtelomeres_loo <- list()
+
+
+for (sample_to_remove in colnames(HH_sample_count_matrix)) {
+
+   print(sample_to_remove)
+   
+   HH_sample_count_matrix_loo <- HH_sample_count_matrix[, (colnames(HH_sample_count_matrix) != sample_to_remove)]
+
+   HH_coldata_loo <- HH_coldata[rownames(HH_coldata) != sample_to_remove, ]
+
+   print(HH_coldata_loo)
+
+   dds_HH_loo <- DESeqDataSetFromMatrix(countData = HH_sample_count_matrix_loo,
+                                        colData = HH_coldata_loo,
+                                        design = ~ cell_type)
+   
+   dds_HH_loo <- DESeq(dds_HH_loo)
+   
+   diff_subtelomeres_loo <- append(diff_subtelomeres_loo,
+                                   list((results(dds_HH_loo) %>%
+                                       as_tibble(rownames = "subtelomere") %>%
+                                       filter(padj <= 0.05) %>%
+                                       separate(subtelomere, into = "subtelomere"))$subtelomere))
+   
+}
+
+names(diff_subtelomeres_loo) <- colnames(HH_sample_count_matrix)
+
+pdf("TALEs_count_comparison.pdf", width = 16, height = 12)
+
+TALEs_sample_count_frame %>%
+   gather(-subtelomere,
+          key = sample,
+          value = counts) %>%
+   mutate(sample = str_replace(sample, "\\+", "_")) %>%
+   left_join(TALEs_coldata) %>%
+   separate(subtelomere,
+            into = c("subtelomere"),
+            sep = "tel_") %>%
+   mutate(subtelomere = factor(subtelomere,
+                               levels = subtelomere_small_levels,
+                               ordered = TRUE)) %>%
+   drop_na() %>%
+   ggplot(aes(x = condition,
+              y = counts + 0.1,
+              colour = condition)) + 
+      geom_jitter(height = 0) +
+      facet_wrap(~ subtelomere) +
+      scale_y_log10()
+
+
+TALEs_total_reads_per_sample <- ungroup(TALEs_total_reads_per_sample) %>%
+                                   mutate(condition = str_replace(condition, "\\+", "_"),
+                                          sample = str_replace(sample, "\\+", "_"))
+
+TALEs_sample_count_frame %>%
+   gather(-subtelomere,
+          key = sample,
+          value = counts) %>%
+   mutate(sample = str_replace(sample, "\\+", "_")) %>%
+   left_join(TALEs_total_reads_per_sample) %>%
+   separate(subtelomere, into = c("subtelomere"), sep = "tel_") %>%
+   mutate(subtelomere = factor(subtelomere,
+                               levels = subtelomere_small_levels,
+                               ordered = TRUE)) %>%
+   drop_na() %>%
+   ggplot(aes(x = condition,
+              y = (counts + 0.1) / total_reads,
+              colour = condition)) + 
+      geom_jitter(height = 0) +
+      facet_wrap(~ subtelomere) +
+      scale_y_log10()
+
+dev.off()
+
