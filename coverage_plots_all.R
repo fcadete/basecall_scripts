@@ -306,4 +306,8 @@ for (this_cell_type in unique(depth_frame_files$cell_type)) {
 }
 
 
+depth_frame_files %>%
+   filter(str_detect(file, "pA") == FALSE) %>%
+   write_tsv(path = "coverage_frames_for_plotting.tsv")
+
 
