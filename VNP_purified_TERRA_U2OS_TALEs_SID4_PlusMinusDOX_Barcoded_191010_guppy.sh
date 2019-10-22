@@ -32,41 +32,56 @@ barcoded=( "BC01" "BC02" "BC03" "BC04" "BC05" "BC06" "BC07" "BC08" "BC09" "BC10"
 
 for barcode in "${barcoded[@]}"; do
 
-srun -n1 -N1 shifter /FastQC/fastqc -k 6 --nano --threads 40 191010_Eighth_run/191010_TALES/NLS3_SID4/20191010_1549_MN29796_FAL24491_be365db2/fastq_guppy/barcode_separated/$barcode.fastq
+#srun -n1 -N1 shifter /FastQC/fastqc -k 6 --nano --threads 40 191010_Eighth_run/191010_TALES/NLS3_SID4/20191010_1549_MN29796_FAL24491_be365db2/fastq_guppy/barcode_separated/$barcode.fastq
+#
+#srun -n1 -N1 shifter bash -c "/minimap2/minimap2 -a -x map-ont -t 40 \
+#                                     references/ConcatenatedFASTAAassemblies_hTel.txt \
+#                                     191010_Eighth_run/191010_TALES/NLS3_SID4/20191010_1549_MN29796_FAL24491_be365db2/fastq_guppy/barcode_separated/$barcode.fastq | \
+#                                     samtools view -b - > TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont.bam"
+#
+#
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont.bam | samtools view -bq 30 - | samtools depth - > TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont_q30.depth"
+#
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont.bam | samtools view -bF 256 - | samtools depth - > TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont_primary.depth"
+#
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont.bam | samtools view -bq 30 - > TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont_q30.bam; samtools index TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont_q30.bam"
+#
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont.bam | samtools view -bF 256 - > TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont_primary.bam; samtools index TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont_primary.bam"
+#
+#
+#srun -n1 -N1 shifter --image=docker:fcadete/guppy:latest /Porechop/porechop-runner.py -i 191010_Eighth_run/191010_TALES/NLS3_SID4/20191010_1549_MN29796_FAL24491_be365db2/fastq_guppy/barcode_separated/$barcode.fastq \
+#                                          -b 191010_Eighth_run/191010_TALES/NLS3_SID4/20191010_1549_MN29796_FAL24491_be365db2/fastq_guppy/barcode_separated/$barcode \
+#                                          --barcode_diff 1 --check_reads 50000 -t 40 --verbosity 3 > TALEs/primer_separation/guppy_VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_$barcode.porechop_output
+#
+#srun -n1 -N1 shifter python3 basecall_scripts/parse_porechop_output.py TALEs/primer_separation/guppy_VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_$barcode.porechop_output
+#
 
-srun -n1 -N1 shifter bash -c "/minimap2/minimap2 -a -x map-ont -t 40 \
-                                     references/ConcatenatedFASTAAassemblies_hTel.txt \
-                                     191010_Eighth_run/191010_TALES/NLS3_SID4/20191010_1549_MN29796_FAL24491_be365db2/fastq_guppy/barcode_separated/$barcode.fastq | \
-                                     samtools view -b - > TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont.bam"
-
-
-srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont.bam | samtools view -bq 30 - | samtools depth - > TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont_q30.depth"
-
-srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont.bam | samtools view -bF 256 - | samtools depth - > TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont_primary.depth"
-
-srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont.bam | samtools view -bq 30 - > TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont_q30.bam; samtools index TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont_q30.bam"
-
-srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont.bam | samtools view -bF 256 - > TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont_primary.bam; samtools index TALEs/alignment_outputs/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_on_rhietman_mapont_primary.bam"
-
+mkdir TALEs/alignment_outputs_primered
+   
+   primers=("Joana_TERRA_VNP_no_PCR" "Joana_polyA_VNP_no_PCR" "none")
+   
+   for primer in "${primers[@]}"; do
+   
+   srun -n1 -N1 shifter bash -c "/minimap2/minimap2 -a -x map-ont -t 40 \
+                                        references/ConcatenatedFASTAAassemblies_hTel.txt \
+                                        191010_Eighth_run/191010_TALES/NLS3_SID4/20191010_1549_MN29796_FAL24491_be365db2/fastq_guppy/barcode_separated/$barcode/$primer.fastq | \
+                                        samtools view -b - > TALEs/alignment_outputs_primered/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_${primer}_on_rhietman_mapont.bam"
+   
+   
+   srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs_primered/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_${primer}_on_rhietman_mapont.bam | samtools view -bq 30 - | samtools depth - > TALEs/alignment_outputs_primered/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_${primer}_on_rhietman_mapont_q30.depth"
+   
+   srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs_primered/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_${primer}_on_rhietman_mapont.bam | samtools view -bF 256 - | samtools depth - > TALEs/alignment_outputs_primered/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_${primer}_on_rhietman_mapont_primary.depth"
+   
+   srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs_primered/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_${primer}_on_rhietman_mapont.bam | samtools view -bq 30 - > TALEs/alignment_outputs_primered/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_${primer}_on_rhietman_mapont_q30.bam; samtools index TALEs/alignment_outputs_primered/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_${primer}_on_rhietman_mapont_q30.bam"
+   
+   srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs_primered/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_${primer}_on_rhietman_mapont.bam | samtools view -bF 256 - > TALEs/alignment_outputs_primered/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_${primer}_on_rhietman_mapont_primary.bam; samtools index TALEs/alignment_outputs_primered/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_${barcode}_${primer}_on_rhietman_mapont_primary.bam"
+   
+   
+   done
+   
 done
 
-#
-#
-## Map all reads, without using porechop to identify the adapters
-## The rationale is that porechop is removing the adapters and, with them, useful telomeric sequences that we want to use.
-#srun -n1 -N1 shifter bash -c "cat 191010_Eighth_run/191010_TALES/NLS3_SID4/20191010_1549_MN29796_FAL24491_be365db2/fastq_guppy/pass/*fastq |
-#                              /minimap2/minimap2 -a -x map-ont -t 40 \
-#                                                references/ConcatenatedFASTAAassemblies_hTel.txt - |
-#                              samtools view -b - > TALEs/alignment_outputs_no_barcoding/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_on_rhietman_mapont.bam"
-#
-#srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs_no_barcoding/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_on_rhietman_mapont.bam | samtools view -bq 30 - | samtools depth - > TALEs/alignment_outputs_no_barcoding/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_on_rhietman_mapont_q30.depth"
-#
-#srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs_no_barcoding/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_on_rhietman_mapont.bam | samtools view -bF 256 - | samtools depth - > TALEs/alignment_outputs_no_barcoding/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_on_rhietman_mapont_primary.depth"
-#
-#srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs_no_barcoding/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_on_rhietman_mapont.bam | samtools view -bq 30 - > TALEs/alignment_outputs_no_barcoding/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_on_rhietman_mapont_q30.bam; samtools index TALEs/alignment_outputs_no_barcoding/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_on_rhietman_mapont_q30.bam"
-#
-#srun -n1 -N1 shifter bash -c "samtools sort -@ 40 TALEs/alignment_outputs_no_barcoding/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_on_rhietman_mapont.bam | samtools view -bF 256 - > TALEs/alignment_outputs_no_barcoding/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_on_rhietman_mapont_primary.bam; samtools index TALEs/alignment_outputs_no_barcoding/VNP_purified_TERRA_U2OS_TALEs_SID4_PlusMinusDOX_Barcoded_191010_on_rhietman_mapont_primary.bam"
-#
+
 
 echo "Statistics for job $SLURM_JOB_ID:"
 sacct --format="JOBID,NodeList,NNodes,Start,End,Elapsed,AllocCPUs,CPUTime,AveDiskRead,AveDiskWrite,MaxRSS,MaxVMSize,exitcode,derivedexitcode" -j $SLURM_JOB_ID

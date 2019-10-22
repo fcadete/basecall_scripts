@@ -6,6 +6,7 @@ library(tidyr)
 library(stringr)
 library(GenomicAlignments)
 library(DESeq2)
+library(ggrepel)
 
 pdf("TALEs/TALES_DESeq2_191010.pdf")
 
@@ -343,6 +344,8 @@ p <- ggplot(results_all,
            y = log2FoldChange,
            colour = has_rajika)) +
    geom_point() +
+   geom_label_repel(data = filter(results_all, baseMean > 100),
+                    mapping = aes(label = subtelomere)) +
    scale_colour_viridis_d(name = "TALE target",
                           labels = c("Absent", "Present")) +
    facet_wrap(~ comparison) +
