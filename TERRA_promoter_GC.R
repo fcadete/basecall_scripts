@@ -18,124 +18,47 @@ subtelomere_levels <- c("1ptel", "1qtel", "2ptel", "2qtel", "3ptel",
 
 subtelomeres <- readDNAStringSet("references/ConcatenatedFASTAAassemblies_hTel.txt", "fasta")
 
-CpG_matches <- vmatchPattern("GC", subtelomeres)
+CpG_matches <- vmatchPattern("CG", subtelomeres)
 
-CpG_sliding_windows <- data_frame()
-
-GC_content_sliding_windows <- data_frame()
+CpG_islands <- data_frame()
 
 for (subtelomere in names(subtelomeres)) {
 
-      CpG_sliding_windows <- rbind(CpG_sliding_windows,
-                                   data_frame(subtelomere = subtelomere,
-                                              CpG_mean_over_window = roll_mean(as.vector(coverage(CpG_matches[[subtelomere]], width = 500000) / 2),
-                                                                               n = 100, by = 10, fill = NA)))
+      G_and_C_frequency_in_subtelomere <- letterFrequencyInSlidingView(subtelomeres[[subtelomere]], 200, c("G", "C"))
 
-      GC_content_sliding_windows <- rbind(GC_content_sliding_windows,
-                                          data_frame(subtelomere = subtelomere,
-                                                     GC_content_over_window = roll_mean(letterFrequencyInSlidingView(subtelomeres[[subtelomere]], 1, letters = c("G", "C")) %>%
-                                                                                             rowSums(),
-                                                                                        n = 100, by = 10, fill = NA)))
+      CpG_expected_in_subtelomere <- (G_and_C_frequency_in_subtelomere[,"C"] * G_and_C_frequency_in_subtelomere[,"G"]) / 200
 
+      GC_content_in_subtelomere <- (G_and_C_frequency_in_subtelomere[,"C"] + G_and_C_frequency_in_subtelomere[,"G"]) / 200
+
+
+      two_hundred_bp_windows <- GRanges(seqnames = subtelomere,
+                                        ranges = IRanges(start = seq(200, length(subtelomeres[[subtelomere]]), by = 1) - 199,
+                                        end = seq(200, length(subtelomeres[[subtelomere]]), by = 1)),
+                                        strand = "*")
+
+      CpG_observed_in_subtelomere <- countOverlaps(two_hundred_bp_windows,
+                                                   GRanges(seqnames = subtelomere, ranges =  CpG_matches[[subtelomere]]))
+
+      CpG_islands_in_subtelomere <- ((CpG_observed_in_subtelomere / CpG_expected_in_subtelomere) > 0.6) &
+                                      (GC_content_in_subtelomere > 0.5)
+
+      CpG_islands_in_subtelomere[is.na(CpG_islands_in_subtelomere)] <- FALSE 
+
+      two_hundred_bp_windows$CpG_islands <- CpG_islands_in_subtelomere
+
+      CpG_islands <- bind_rows(CpG_islands,
+                               as_tibble(reduce(two_hundred_bp_windows[two_hundred_bp_windows$CpG_islands])))
 }
 
-CpG_sliding_windows <- CpG_sliding_windows %>%
-    group_by(subtelomere) %>%
-    mutate(pos = 1:500000) %>%
-    drop_na()
 
-CpG_sliding_windows <- CpG_sliding_windows %>%
-                 separate(subtelomere, into = c("subtelomere"), extra = "drop")
+CpG_islands <- CpG_islands %>%
+                  separate(seqnames, into = c("subtelomere"), extra = "drop") %>%
+                  mutate(subtelomere = factor(subtelomere,
+                                              levels = c(subtelomere_levels),
+                                              ordered = TRUE)) %>%
+                  arrange(subtelomere)
 
-CpG_sliding_windows$subtelomere <- factor(CpG_sliding_windows$subtelomere,
-                                          levels = subtelomere_levels,
-                                          ordered = TRUE)
-
-
-subtelomere_aligned_counts <- read_tsv("subtelomere_aligned_counts_all.tsv")
-
-subtelomere_aligned_counts$seqnames <- factor(subtelomere_aligned_counts$seqnames,
-                                              levels = subtelomere_levels,
-                                              ordered = TRUE)
-
-TSS_maxima <- read_tsv("telomere_distal_alignment_maxima.tsv")
-
-TSS_maxima <- separate(TSS_maxima, long_seqnames, into = c("subtelomere"), extra = "drop")
-TSS_maxima$subtelomere <- factor(TSS_maxima$subtelomere,
-                                 levels = subtelomere_levels,
-                                 ordered = TRUE)
-
-png("coverage_plots/GpC_islands_zoomed.png", width = 1280, height = 1024)
-
-ggplot(CpG_sliding_windows %>% filter(pos <= 50000),
-       aes(x = pos, y = CpG_mean_over_window)) +
-   geom_line() +
-   facet_wrap(~ subtelomere) +
-   theme_bw() +
-   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-dev.off()
-
-png("coverage_plots/GpC_islands_extra_zoomed.png", width = 1280, height = 1024)
-
-ggplot(CpG_sliding_windows %>% filter(pos <= 2000)) +
-   geom_rect(data = left_join(TSS_maxima,
-                              select(subtelomere_aligned_counts, subtelomere = seqnames, mapped_reads)),
-             mapping = aes(xmin = start_coord, xmax = end_coord,
-                           ymin = -Inf, ymax = Inf,
-                           fill = mapped_reads),
-             alpha = I(1/2)) +
-   scale_fill_viridis_c() +
-   geom_line(mapping = aes(x = pos, y = CpG_mean_over_window)) +
-   facet_wrap(~ subtelomere) +
-   theme_bw() +
-   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-dev.off()
-
-
-
-GC_content_sliding_windows <- GC_content_sliding_windows %>%
-    group_by(subtelomere) %>%
-    mutate(pos = 1:width(subtelomeres[subtelomere])) %>%
-    drop_na()
-
-GC_content_sliding_windows <- GC_content_sliding_windows %>%
-                 separate(subtelomere, into = c("subtelomere"), extra = "drop")
-
-GC_content_sliding_windows$subtelomere <- factor(GC_content_sliding_windows$subtelomere,
-                          levels = subtelomere_levels,
-                          ordered = TRUE)
-
-png("coverage_plots/gc_content_zoomed.png", width = 1280, height = 1024)
-
-ggplot(GC_content_sliding_windows %>% filter(pos <= 50000),
-       aes(x = pos, y = GC_content_over_window)) +
-   geom_line() +
-   facet_wrap(~ subtelomere) +
-   theme_bw() +
-   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-dev.off()
-
-
-png("coverage_plots/gc_content_extra_zoomed.png", width = 1280, height = 1024)
-
-ggplot(GC_content_sliding_windows %>% filter(pos <= 2000)) +
-   geom_rect(data = left_join(TSS_maxima,
-                              select(subtelomere_aligned_counts, subtelomere = seqnames, mapped_reads)),
-             mapping = aes(xmin = start_coord, xmax = end_coord,
-                           ymin = -Inf, ymax = Inf,
-                           fill = mapped_reads),
-             alpha = I(1/2)) +
-   scale_fill_viridis_c() +
-   geom_line(mapping = aes(x = pos, y = GC_content_over_window)) +
-   facet_wrap(~ subtelomere) +
-   theme_bw() +
-   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-dev.off()
-
-
+write_tsv(CpG_islands,
+          path = "CpG_islands_in_subtelomeres.tsv")
 
 
