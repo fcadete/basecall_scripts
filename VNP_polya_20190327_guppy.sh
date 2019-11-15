@@ -26,58 +26,58 @@
 #
 #srun -n1 -N1 shifter python3 basecall_scripts/parse_porechop_output.py guppy_VNP_polya_20190327.porechop_output
 #
-barcoded=( "Joana_polyA_VNP" "Joana_polyA_VNP_no_PCR" "Joana_TERRA_VNP" "Joana_TERRA_VNP_no_PCR" "none" )
-
-
-for barcode in "${barcoded[@]}"; do
-
-srun -n1 -N1 shifter /FastQC/fastqc -k 6 --nano --threads 32 20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/barcode_separated/$barcode.fastq
-
-srun -n1 -N1 shifter bash -c "/minimap2/minimap2 -a -x map-ont -t 32 \
-                                     references/ConcatenatedFASTAAassemblies_hTel.txt \
-                                     20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/barcode_separated/$barcode.fastq | \
-                                     samtools view -b - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont.bam"
-
-srun -n1 -N1 shifter bash -c "/minimap2/minimap2 -a -x splice -t 32 \
-                                     references/ConcatenatedFASTAAassemblies_hTel.txt \
-                                     20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/barcode_separated/$barcode.fastq | \
-                                     samtools view -b - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice.bam"
-
-srun -n1 -N1 shifter bash -c "/minimap2/minimap2 -a -x map-ont -t 32 \
-                                     references/Homo_sapiens.GRCh38.dna.primary_assembly.fa \
-                                     20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/barcode_separated/$barcode.fastq | \
-                                     samtools view -b - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont.bam"
-
-srun -n1 -N1 shifter bash -c "/minimap2/minimap2 -a -x splice -t 32 \
-                                     references/Homo_sapiens.GRCh38.dna.primary_assembly.fa \
-                                     20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/barcode_separated/$barcode.fastq | \
-                                     samtools view -b - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice.bam"
-
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont.bam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont_q30.depth"
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice.bam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice_q30.depth"
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont.bam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont_q30.depth"
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice.bam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice_q30.depth"
-
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont.bam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont_primary.depth"
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice.bam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice_primary.depth"
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont.bam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont_primary.depth"
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice.bam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice_primary.depth"
-
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont.bam | samtools view -bq 30 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont_q30.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont_q30.bam"
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice.bam | samtools view -bq 30 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice_q30.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice_q30.bam"
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont.bam | samtools view -bq 30 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont_q30.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont_q30.bam"
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice.bam | samtools view -bq 30 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice_q30.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice_q30.bam"
-
-
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont.bam | samtools view -bF 256 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont_primary.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont_primary.bam"
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice.bam | samtools view -bF 256 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice_primary.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice_primary.bam"
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont.bam | samtools view -bF 256 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont_primary.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont_primary.bam"
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice.bam | samtools view -bF 256 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice_primary.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice_primary.bam"
-
-
-
-done
-
+#barcoded=( "Joana_polyA_VNP" "Joana_polyA_VNP_no_PCR" "Joana_TERRA_VNP" "Joana_TERRA_VNP_no_PCR" "none" )
+#
+#
+#for barcode in "${barcoded[@]}"; do
+#
+#srun -n1 -N1 shifter /FastQC/fastqc -k 6 --nano --threads 32 20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/barcode_separated/$barcode.fastq
+#
+#srun -n1 -N1 shifter bash -c "/minimap2/minimap2 -a -x map-ont -t 32 \
+#                                     references/ConcatenatedFASTAAassemblies_hTel.txt \
+#                                     20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/barcode_separated/$barcode.fastq | \
+#                                     samtools view -b - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont.bam"
+#
+#srun -n1 -N1 shifter bash -c "/minimap2/minimap2 -a -x splice -t 32 \
+#                                     references/ConcatenatedFASTAAassemblies_hTel.txt \
+#                                     20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/barcode_separated/$barcode.fastq | \
+#                                     samtools view -b - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice.bam"
+#
+#srun -n1 -N1 shifter bash -c "/minimap2/minimap2 -a -x map-ont -t 32 \
+#                                     references/Homo_sapiens.GRCh38.dna.primary_assembly.fa \
+#                                     20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/barcode_separated/$barcode.fastq | \
+#                                     samtools view -b - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont.bam"
+#
+#srun -n1 -N1 shifter bash -c "/minimap2/minimap2 -a -x splice -t 32 \
+#                                     references/Homo_sapiens.GRCh38.dna.primary_assembly.fa \
+#                                     20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/barcode_separated/$barcode.fastq | \
+#                                     samtools view -b - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice.bam"
+#
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont.bam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont_q30.depth"
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice.bam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice_q30.depth"
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont.bam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont_q30.depth"
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice.bam | samtools view -bq 30 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice_q30.depth"
+#
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont.bam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont_primary.depth"
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice.bam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice_primary.depth"
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont.bam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont_primary.depth"
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice.bam | samtools view -bF 256 - | samtools depth - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice_primary.depth"
+#
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont.bam | samtools view -bq 30 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont_q30.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont_q30.bam"
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice.bam | samtools view -bq 30 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice_q30.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice_q30.bam"
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont.bam | samtools view -bq 30 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont_q30.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont_q30.bam"
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice.bam | samtools view -bq 30 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice_q30.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice_q30.bam"
+#
+#
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont.bam | samtools view -bF 256 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont_primary.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_mapont_primary.bam"
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice.bam | samtools view -bF 256 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice_primary.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_rhietman_splice_primary.bam"
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont.bam | samtools view -bF 256 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont_primary.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_mapont_primary.bam"
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice.bam | samtools view -bF 256 - > alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice_primary.bam; samtools index alignment_outputs/VNP_polya_20190327_${barcode}_on_GRCh38_splice_primary.bam"
+#
+#
+#
+#done
+#
 #srun -n1 -N1 shifter /bbmap/kmercountexact.sh in=20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/pass_trimmed.fastq \
 #                                                          out=20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/pass_trimmed.kmer_count \
 #                                                          fastadump=f k=6 threads=32 qin=33 rcomp=f overwrite=t
@@ -105,19 +105,34 @@ done
 
 # Map all reads, without using porechop to identify the adapters
 # The rationale is that porechop is removing the adapters and, with them, useful telomeric sequences that we want to use.
+#srun -n1 -N1 shifter bash -c "cat 20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/pass/*fastq |
+#                              /minimap2/minimap2 -a -x map-ont -t 32 \
+#                                                references/ConcatenatedFASTAAassemblies_hTel.txt - |
+#                              samtools view -b - > alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont.bam"
+#
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont.bam | samtools view -bq 30 - | samtools depth - > alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont_q30.depth"
+#
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont.bam | samtools view -bF 256 - | samtools depth - > alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont_primary.depth"
+#
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont.bam | samtools view -bq 30 - > alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont_q30.bam; samtools index alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont_q30.bam"
+#
+#srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont.bam | samtools view -bF 256 - > alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont_primary.bam; samtools index alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont_primary.bam"
+#
+
+# Run this poly A samples as normal RNA-seq
+mkdir polyA_RNA
 srun -n1 -N1 shifter bash -c "cat 20190327_first_run/VNP_polya/VNP_polya_20190327/20190327_1155_MN29796_FAK43621_9c927ad2/fastq_guppy/pass/*fastq |
-                              /minimap2/minimap2 -a -x map-ont -t 32 \
-                                                references/ConcatenatedFASTAAassemblies_hTel.txt - |
-                              samtools view -b - > alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont.bam"
+                              /minimap2/minimap2 -a -x splice -t 32 \
+                                                references/Homo_sapiens.GRCh38.dna.primary_assembly.fa - |
+                              samtools view -b - > polyA_RNA/VNP_polya_20190327_on_GRCh38_splice.bam"
 
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont.bam | samtools view -bq 30 - | samtools depth - > alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont_q30.depth"
+srun -n1 -N1 shifter bash -c "samtools sort -@ 32 polyA_RNA/VNP_polya_20190327_on_GRCh38_splice.bam | samtools view -bq 30 - | samtools depth - > polyA_RNA/VNP_polya_20190327_on_GRCh38_splice_q30.depth"
 
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont.bam | samtools view -bF 256 - | samtools depth - > alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont_primary.depth"
+srun -n1 -N1 shifter bash -c "samtools sort -@ 32 polyA_RNA/VNP_polya_20190327_on_GRCh38_splice.bam | samtools view -bF 256 - | samtools depth - > polyA_RNA/VNP_polya_20190327_on_GRCh38_splice_primary.depth"
 
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont.bam | samtools view -bq 30 - > alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont_q30.bam; samtools index alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont_q30.bam"
+srun -n1 -N1 shifter bash -c "samtools sort -@ 32 polyA_RNA/VNP_polya_20190327_on_GRCh38_splice.bam | samtools view -bq 30 - > polyA_RNA/VNP_polya_20190327_on_GRCh38_splice_q30.bam; samtools index polyA_RNA/VNP_polya_20190327_on_GRCh38_splice_q30.bam"
 
-srun -n1 -N1 shifter bash -c "samtools sort -@ 32 alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont.bam | samtools view -bF 256 - > alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont_primary.bam; samtools index alignment_outputs_no_barcoding/VNP_polya_20190327_on_rhietman_mapont_primary.bam"
-
+srun -n1 -N1 shifter bash -c "samtools sort -@ 32 polyA_RNA/VNP_polya_20190327_on_GRCh38_splice.bam | samtools view -bF 256 - > polyA_RNA/VNP_polya_20190327_on_GRCh38_splice_primary.bam; samtools index polyA_RNA/VNP_polya_20190327_on_GRCh38_splice_primary.bam"
 
 echo "Statistics for job $SLURM_JOB_ID:"
 sacct --format="JOBID,NodeList,NNodes,Start,End,Elapsed,AllocCPUs,CPUTime,AveDiskRead,AveDiskWrite,MaxRSS,MaxVMSize,exitcode,derivedexitcode" -j $SLURM_JOB_ID

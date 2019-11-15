@@ -352,4 +352,11 @@ p <- ggplot(results_all,
    theme(aspect.ratio = 1)
 print(p)
 
+
+save(rlogs_trn_design_frame,
+     results_all,
+     rajika_seq_full_matches,
+     file = "TALEs/TALEs_191010_frames_for_plotting.RData")
+
 dev.off()
+

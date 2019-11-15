@@ -62,3 +62,31 @@ write_tsv(CpG_islands,
           path = "CpG_islands_in_subtelomeres.tsv")
 
 
+
+TATAAA_matches <- vmatchPattern("TATAAA", subtelomeres)
+
+lapply(names(TATAAA_matches), function(subtelomere) as_tibble(TATAAA_matches[[subtelomere]]) %>%
+                                                       mutate(subtelomere = subtelomere)) %>%
+   bind_rows() %>%
+   separate(subtelomere, into = c("subtelomere"), extra = "drop") %>%
+   mutate(subtelomere = factor(subtelomere,
+                               levels = c(subtelomere_levels),
+                                          ordered = TRUE)) %>%
+   arrange(subtelomere) %>%
+   write_tsv(path = "TATAAA_matches_in_subtelomeres.tsv")
+
+TTTATA_matches <- vmatchPattern("TTTATA", subtelomeres)
+
+lapply(names(TTTATA_matches), function(subtelomere) as_tibble(TTTATA_matches[[subtelomere]]) %>%
+                                                       mutate(subtelomere = subtelomere)) %>%
+   bind_rows() %>%
+   separate(subtelomere, into = c("subtelomere"), extra = "drop") %>%
+   mutate(subtelomere = factor(subtelomere,
+                               levels = c(subtelomere_levels),
+                                          ordered = TRUE)) %>%
+   arrange(subtelomere) %>%
+   write_tsv(path = "TTTATA_matches_in_subtelomeres.tsv")
+
+  
+
+

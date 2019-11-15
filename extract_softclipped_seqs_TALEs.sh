@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=extract_soft_clippings_from_subtel_ends_TALEs
-#SBATCH --time=0:08:00
+#SBATCH --time=0:30:00
 #SBATCH --output=extract_soft_clippings_from_subtel_ends_TALEs.output
 #SBATCH --mem-per-cpu=8G
 #SBATCH --ntasks=1
