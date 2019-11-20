@@ -16,7 +16,7 @@ subtelomere_levels <- c("1ptel", "1qtel", "2ptel", "2qtel", "3ptel",
                         "XpYptel", "Xqtel", "Yqtel")
 
 rhietman_mapont_files <- list.files(path = "reads_mapping_to_very_end/",
-                                    pattern = "*rhietman_mapont_primary_very_end.depth")
+                                    pattern = "*rhietman_mapont_q30_very_end.depth")
 
 depth_frame <- data_frame()
 
@@ -151,7 +151,7 @@ depth_frame_barcoded_HH <- data_frame()
 for (barcode in barcode_to_conditions$barcode) {
 
    rhietman_mapont_files <- list.files(path = paste0("reads_mapping_to_very_end/HeLa-HEK_barcoded/", barcode),
-                                       pattern = "*rhietman_mapont_primary_very_end.depth")
+                                       pattern = "*rhietman_mapont_q30_very_end.depth")
    
    
    for (file in rhietman_mapont_files) {
@@ -176,7 +176,7 @@ depth_frame_barcoded_HH <- depth_frame_barcoded_HH %>% filter(pos <= 5000)
 
 depth_frame_barcoded_HH <- depth_frame_barcoded_HH %>%
                  separate(chr, into = c("chr"), extra = "drop") %>%
-                 mutate(file = str_remove(file, "_on_rhietman_mapont_primary_very_end.depth"))
+                 mutate(file = str_remove(file, "_on_rhietman_mapont_q30_very_end.depth"))
 
 depth_frame_barcoded_HH$chr <- factor(depth_frame_barcoded_HH$chr,
                           levels = subtelomere_levels,
@@ -210,7 +210,8 @@ depth_frame_barcoded_HH_by_barcode <- left_join(data_frame(chr = rep(factor(rep(
   mutate(depth = ifelse(is.na(depth), 0, depth))
 
 depth_frame_barcoded_HH_by_barcode <- left_join(depth_frame_barcoded_HH_by_barcode,
-                                                barcode_to_conditions)
+                                                barcode_to_conditions) %>%
+                                         mutate(file = paste0(date, "_", barcode))
 
 total_reads_barcoded_HH <- read_tsv("guppy_VNP_purified_TERRA_HeLa-HEK293_20190807.porechop_finalcall_table") %>%
                  dplyr::count(final_barcode_call) %>%
@@ -219,102 +220,69 @@ total_reads_barcoded_HH <- read_tsv("guppy_VNP_purified_TERRA_HeLa-HEK293_201908
                  left_join(barcode_to_conditions)
 
 
-depth_frame_all <- rbind(select(depth_frame_by_file,
-                                chr, pos, cell_type, depth),
-                         select(depth_frame_barcoded_HH_by_barcode,
-                                chr, pos, cell_type, depth))
+depth_frame_all_by_sample <- rbind(select(depth_frame_by_file,
+                                          chr, pos, cell_type, depth, file),
+                                   select(depth_frame_barcoded_HH_by_barcode,
+                                          chr, pos, cell_type, depth, file))
 
-total_reads_all <- rbind(total_reads_by_cell_type,
-                         drop_na(select(total_reads_barcoded_HH,
-                                        cell_type,
-                                        total_reads = total_reads_barcoded_HH))) %>%
-                      group_by(cell_type) %>%
-                      summarise(total_reads = sum(total_reads))
+depth_frame_all_by_cell_type <- depth_frame_all_by_sample %>%
+                                   group_by(cell_type, chr, pos) %>%
+                                   summarise(depth = sum(depth))
 
 
-pdf("coverage_primed_reads_all_samples_pooled_reads_mapping_to_very_end_primary.pdf",
+total_reads_all_by_sample <- rbind(total_reads,
+                                   drop_na(mutate(total_reads_barcoded_HH,
+                                                  file = paste0(date, "_", barcode))) %>%
+                                      select(total_reads = total_reads_barcoded_HH,
+                                             file))
+
+total_reads_all_by_cell_type <- rbind(total_reads_by_cell_type,
+                                      drop_na(select(total_reads_barcoded_HH,
+                                                     cell_type,
+                                                     total_reads = total_reads_barcoded_HH))) %>%
+                                   group_by(cell_type) %>%
+                                   summarise(total_reads = sum(total_reads))
+
+save(depth_frame_all_by_sample,
+     depth_frame_all_by_cell_type,
+     total_reads_all_by_sample,
+     total_reads_all_by_cell_type,
+     file = "coverage_frames_for_plotting_mapping_to_very_end_q30.RData")
+
+
+pdf("coverage_primed_reads_all_samples_pooled_reads_mapping_to_very_end_q30.pdf",
     width = 16,
     height = 12)
 
-depth_frame_all %>%
-   group_by(cell_type, chr, pos) %>%
-   summarise(depth = sum(depth)) %>%
-   ggplot(aes(x = pos, y = depth, group = cell_type, colour = cell_type)) + 
-      geom_line() +
-      facet_wrap(~ chr)
+depth_frame_all_by_cell_type %>%
+   ggplot() +
+      geom_rect(data = filter(tel_29_bp_frame, end <= 2000),
+                mapping = aes(xmin = start,
+                              xmax = end,
+                              ymin = -Inf,
+                              ymax = Inf,
+                              fill = bitscore),
+                colour = NA) +
+      geom_line(mapping = aes(x = pos, y = depth, group = cell_type, colour = cell_type)) +
+      facet_wrap(~ chr) +
+      theme_bw()
 
-depth_frame_all %>%
-   group_by(cell_type, chr, pos) %>%
-   summarise(depth = sum(depth)) %>%
-   left_join(total_reads_all) %>%
-   ggplot(aes(x = pos, y = depth / total_reads, group = cell_type, colour = cell_type)) + 
-      geom_line() +
-      facet_wrap(~ chr)
+depth_frame_all_by_cell_type %>%
+   left_join(total_reads_all_by_cell_type) %>%
+   ggplot() + 
+      geom_rect(data = filter(tel_29_bp_frame, end <= 2000),
+                mapping = aes(xmin = start,
+                              xmax = end,
+                              ymin = -Inf,
+                              ymax = Inf,
+                              fill = bitscore),
+                colour = NA) +
+      geom_line(mapping = aes(x = pos, y = depth / total_reads, group = cell_type, colour = cell_type)) +
+      facet_wrap(~ chr) +
+      theme_bw()
 
 dev.off()
 
-#
-#depth_frame_files <- rbind(select(depth_frame_by_file,
-#                                  chr, pos, cell_type, file, depth),
-#                           mutate(depth_frame_barcoded_HH_by_barcode,
-#                                  file = paste(cell_type, date, sep = "_")) %>%
-#                              select(chr, pos, cell_type, file, depth))
-#
-#
-#
-#total_reads_by_file <- total_reads %>%
-#     filter(grepl("purified", file),
-#            (grepl("TALE", file)) == FALSE) %>%
-#     mutate(cell_type = ifelse(grepl("HeL", file),
-#                               "HeLa",
-#                               ifelse(grepl("GM847", file),
-#                                      "GM847",
-#                                      ifelse(grepl("SAOS2", file),
-#                                             "SAOS2",
-#                                             ifelse(grepl("HEK", file),
-#                                                    "HEK293T",
-#                                                    "U2OS"))))) %>%
-#   select(file, total_reads)
-#
-#total_reads_by_sample <- rbind(total_reads_by_file,
-#                               mutate(total_reads_barcoded_HH,
-#                                      file = paste(cell_type, date, sep = "_")) %>%
-#                                 drop_na() %>%
-#                                 select(file,
-#                                        total_reads = total_reads_barcoded_HH))
-#
-#
-#for (this_cell_type in unique(depth_frame_files$cell_type)) {
-#
-#   n_files <- length(unique(filter(depth_frame_files, cell_type == this_cell_type)$file))
-#
-#   p <- depth_frame_files %>%
-#         filter(cell_type == this_cell_type) %>%
-#         group_by(cell_type, file, chr, pos) %>%
-#         summarise(depth = sum(depth)) %>%
-#         ggplot(aes(x = pos, y = depth, group = file)) + 
-#            geom_line(alpha = I(1/n_files)) +
-#            facet_wrap(~ chr) +
-#            labs(title = this_cell_type)
-#   print(p)
-#
-#   p <- depth_frame_files %>%
-#           filter(cell_type == this_cell_type) %>%
-#           group_by(cell_type, file, chr, pos) %>%
-#           summarise(depth = sum(depth)) %>%
-#           left_join(total_reads_by_sample) %>%
-#           ggplot(aes(x = pos, y = depth / total_reads, group = file)) +
-#              geom_line(alpha = I(1/n_files)) +
-#              facet_wrap(~ chr) +
-#              labs(title = this_cell_type)
-#   print(p)
-#
-#}
-#
-#
-#depth_frame_files %>%
-#   filter(str_detect(file, "pA") == FALSE) %>%
-#   left_join(total_reads_by_sample) %>%
-#   write_tsv(path = "coverage_frames_for_plotting.tsv")
-#
+
+
 

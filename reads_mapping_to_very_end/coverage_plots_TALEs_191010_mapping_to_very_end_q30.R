@@ -34,14 +34,14 @@ depth_frame <- data_frame()
 
 for (this_barcode in unique(barcode_to_condition$barcode)) {
    
-   rhietman_mapont_files <- list.files(path = paste0("reads_mapping_to_very_end/TALEs/", this_barcode),
-                                       pattern = "*rhietman_mapont_q30_very_end.depth")
+   rhietman_mapont_files <- list.files(path = paste0("reads_mapping_to_very_end/TALEs_primered/", this_barcode),
+                                       pattern = "*q30_very_end.depth")
    
    rhietman_mapont_files <- rhietman_mapont_files[grepl("191010", rhietman_mapont_files)]
    for (file in rhietman_mapont_files) {
      
    
-     this_file_depth <- read_tsv(paste0("reads_mapping_to_very_end/TALEs/", this_barcode, "/", file),
+     this_file_depth <- read_tsv(paste0("reads_mapping_to_very_end/TALEs_primered/", this_barcode, "/", file),
                                          col_names = c("chr", "pos", "depth"),
                                          col_types = "cii")
    
@@ -140,7 +140,7 @@ depth_frame_by_barcode %>%
       geom_line(mapping = aes(x = pos,
                               y = depth,
                               group = barcode,
-                              colour = sample_ID),
+                              colour = condition),
                 alpha = I(3/5)) +
       facet_wrap(~ chr) +
       scale_colour_viridis_d(option = "plasma") +
@@ -163,7 +163,7 @@ depth_frame_by_barcode %>%
       geom_line(mapping = aes(x = pos,
                               y = depth / total_reads,
                               group = barcode,
-                              colour = sample_ID),
+                              colour = condition),
                 alpha = I(3/5)) +
       facet_wrap(~ chr) +
       scale_colour_viridis_d(option = "plasma") +
